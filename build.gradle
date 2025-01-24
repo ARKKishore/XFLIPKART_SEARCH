@@ -1,14 +1,13 @@
 plugins {
     id 'java'
+    id 'application'
+    id 'checkstyle'
 }
 
-
-
-// Apply the java plugin to add support for Java
-apply plugin: 'java'
-apply plugin: 'application'
-apply plugin: 'checkstyle'
-
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 
 group 'org.example'
 version '1.0-SNAPSHOT'
@@ -18,49 +17,45 @@ repositories {
 }
 
 dependencies {
-
-    testImplementation 'org.testng:testng:6.9.10'
-
-    // https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java
-    implementation 'org.seleniumhq.selenium:selenium-java:4.21.0'
-
+    implementation 'org.seleniumhq.selenium:selenium-java:4.11.0'
+    implementation 'org.testng:testng:7.4.0'  // Update TestNG to a more recent version
 }
 
 buildDir = 'build'
 
 test {
     useTestNG() {
-        useDefaultListeners = true // generates the test report
+        useDefaultListeners = true
         suites "src/test/resources/testng.xml"
     }
 
     afterSuite { desc, result ->
-            if (!desc.parent) {
-                println "\nTEST RESULT: ${result.resultType}"
-                println "TEST SUMMARY: RAN ${result.testCount} TESTS, " +
-                        "${result.successfulTestCount} SUCCEEDED, " +
-                        "${result.failedTestCount} FAILED, " +
-                        "${result.skippedTestCount} SKIPPED"
-            }
+        if (!desc.parent) {
+            println "\nTEST RESULT: ${result.resultType}"
+            println "TEST SUMMARY: RAN ${result.testCount} TESTS, " +
+                    "${result.successfulTestCount} SUCCEEDED, " +
+                    "${result.failedTestCount} FAILED, " +
+                    "${result.skippedTestCount} SKIPPED"
+        }
     }
 
     testLogging {
-		events "PASSED", "SKIPPED", "FAILED", "STANDARD_OUT", "STANDARD_ERROR"
+        events "PASSED", "SKIPPED", "FAILED", "STANDARD_OUT", "STANDARD_ERROR"
         exceptionFormat = 'full'
-
-        // Optionally do:
         showStackTraces = true
-	}
+    }
 
     testLogging.showStandardStreams = true
-    test.outputs.upToDateWhen {false}
+    test.outputs.upToDateWhen { false }
 
+    dependsOn assemble
+    mustRunAfter clean
 }
 
 mainClassName = 'demo.App'
 
 checkstyle {
-    toolVersion = '8.45' // Check for the latest version compatible with your setup
+    toolVersion = '8.45'
     config = rootProject.resources.text.fromFile('__CRIO__/checkstyle.xml')
     sourceSets = [sourceSets.test]
     ignoreFailures = true
@@ -68,12 +63,7 @@ checkstyle {
 
 tasks.withType(Checkstyle) {
     reports {
-            xml.required = true
-            html.required = false
-        }
-}
-
-test {
-    dependsOn assemble
-    mustRunAfter clean
+        xml.required = true
+        html.required = false
+    }
 }
